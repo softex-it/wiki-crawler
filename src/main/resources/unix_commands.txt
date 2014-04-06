@@ -1,0 +1,4 @@
+
+- Copy only images to another folder:
+
+find /ext/wiki/media -name '*.gif' -o -name '*.jpg' -o -name '*.png' -o -name '*.jpeg' -exec cp {} /ext/wiki/media-f/ \;
