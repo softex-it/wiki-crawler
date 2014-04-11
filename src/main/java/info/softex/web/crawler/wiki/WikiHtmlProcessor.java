@@ -14,6 +14,7 @@ import info.softex.web.crawler.impl.jobs.AbstractHtmlJob;
 import info.softex.web.crawler.impl.runners.HtmlFilesJobRunner;
 import info.softex.web.crawler.utils.ConversionUtils;
 import info.softex.web.crawler.utils.DownloadUtils;
+import info.softex.web.crawler.utils.FileUtils;
 import info.softex.web.crawler.utils.JsoupUtils;
 import info.softex.web.crawler.utils.UrlUtils;
 
@@ -44,6 +45,7 @@ public class WikiHtmlProcessor {
 	private final static ImageFileFilter imageFilter = new ImageFileFilter();
 	
 	private final static String[] IMAGE_WHITE_LIST = {
+		//"flag_", "seal_", "coat_of_arms_",
 		"flag", "seal", "coat_of_arms", "coa",
 		"order", "medal",
 		"logo", "icon", "symbol", // Iconic images
@@ -69,10 +71,12 @@ public class WikiHtmlProcessor {
 		//logPool.setImageDebugLogFile(new File("/ext/wiki/imagesDebug.txt"));
 		
 		WikiHtmlFileJob wikiJob = new WikiHtmlFileJob(
-			"/ext/wiki/processed",
-			"/ext/wiki/media",
-			logPool
-		);
+			logPool,
+			"/ext/wiki/articles_html",
+			"/ext/wiki/media"
+		);	
+		
+		//WikiHtmlFileJob wikiJob = new WikiHtmlFileJob(logPool, new File("/ext/wiki/articles.txt"));
 		
 		runner.run(wikiJob);
 		
@@ -84,12 +88,16 @@ public class WikiHtmlProcessor {
 		
 		private Set<String> absentLinks = new HashSet<String>();
 		
-		public WikiHtmlFileJob(String inHtmlPath, String inMediaPath, LogPool inLogPool) throws IOException {
+		public WikiHtmlFileJob(LogPool inLogPool, String inHtmlPath, String inMediaPath) throws IOException {
 			super(inLogPool, inHtmlPath, inMediaPath);
 		}
 		
+		public WikiHtmlFileJob(LogPool inLogPool, File inOutFile) throws IOException {
+			super(inLogPool, inOutFile);
+		}
+		
 		@Override
-		public Element processDocument(Document inDocument, String fileName) throws Exception {
+		public Element processDocument(Document inDocument, String inTitle) throws Exception {
 //			Element preContent = inDocument.select("div.pre-content").first();
 			Element content = inDocument.select("div.content").first();
 //			if (preContent == null || content == null) {
@@ -97,13 +105,13 @@ public class WikiHtmlProcessor {
 //			}
 			Element root = new Element(Tag.valueOf("div"), "");
 			//root.insertChildren(-1, preContent.childNodes());
-			root.append("<h2>" + ConversionUtils.mapFileNameToWord(fileName) + "</h2>");
+			root.append("<h2>" + inTitle + "</h2>");
 			root.insertChildren(-1, content.childNodes());
 			return root;
 		}
 		
 		@Override
-		public boolean processContent(Element content, String fileName) throws Exception {
+		public boolean processContent(Element content, String inTitle) throws Exception {
 	 		
 			// Cut page actions from pre-content
 			//content.select("ul#page-actions").remove();
@@ -163,7 +171,7 @@ public class WikiHtmlProcessor {
 		}
 		
 		@Override
-		protected String processLink(String href, String inFileName) throws Exception {
+		protected String processLink(String href, String inTitle) throws Exception {
 			
 			String newHref = null;
 			
@@ -182,14 +190,14 @@ public class WikiHtmlProcessor {
 						href = ConversionUtils.replaceUnderscoresWithSpaces(href);
 						
 						// Check if it's a jump link
-						String jumpId = ConversionUtils.extractJumpId(href);
+						String jumpId = UrlUtils.extractJumpId(href);
 						if (jumpId != null) {
 							href = href.substring(0, href.length() - jumpId.length()).trim();
 						}
 						
-						String realFileName = getWordFileMappedName(ConversionUtils.mapWordToFileName(href));
+						String realFileName = getWordFileMappedName(FileUtils.title2FileName(href));
 						if (realFileName != null) {
-							newHref = ConversionUtils.mapFileNameToWord(realFileName);
+							newHref = FileUtils.fileName2Title(realFileName);
 							if (jumpId != null) {
 								newHref += jumpId;
 							}
@@ -262,15 +270,26 @@ public class WikiHtmlProcessor {
 			soundsRemoved++;
 		}
 		
-	}
-	
-	protected static boolean isImageWhiteListed(String name) {
-		for (int i = 0; i < IMAGE_WHITE_LIST.length; i++) {
-			if (name.contains(IMAGE_WHITE_LIST[i])) {
-				return true;
-			}
+		@Override
+		protected String processOutput(Element content, String inTitle) throws Exception {
+			return content.html() + "<br>&nbsp;";
 		}
-		return false;
+		
+		@Override
+		protected void saveOutput(String output, String inTitle) throws Exception {
+			String fileName = FileUtils.title2FileName(inTitle);
+			FileUtils.string2File(outHtmlPath + File.separator + fileName, output);
+		}
+		
+		protected static boolean isImageWhiteListed(String name) {
+			for (int i = 0; i < IMAGE_WHITE_LIST.length; i++) {
+				if (name.contains(IMAGE_WHITE_LIST[i])) {
+					return true;
+				}
+			}
+			return false;
+		}
+		
 	}
 
 }

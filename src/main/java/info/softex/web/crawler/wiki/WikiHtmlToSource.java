@@ -19,7 +19,7 @@ public class WikiHtmlToSource {
 	public static void main(String[] args) throws Exception {
 		
 		JobRunner runner = new HtmlFilesJobRunner(
-			"/ext/wiki/processed"
+			"/ext/wiki/articles_html"
 		);
 		
 		JobRunnable htmlToSourceJob = new HtmlToSourceConverterJob(

@@ -6,8 +6,8 @@ import info.softex.web.crawler.api.LogPool;
 import info.softex.web.crawler.impl.BasicLogPool;
 import info.softex.web.crawler.impl.jobs.AbstractHtmlJob;
 import info.softex.web.crawler.impl.runners.TextLinesJobRunner;
-import info.softex.web.crawler.utils.ConversionUtils;
 import info.softex.web.crawler.utils.DownloadUtils;
+import info.softex.web.crawler.utils.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,27 +22,36 @@ import java.io.IOException;
 public class WikiListDownloader {
 	
 	public static final String HOST = "http://ru.m.wikipedia.org";
+	//public static final String HOST = "http://uk.m.wikipedia.org";
 	
 	public static void main(String[] args) throws Exception {
 		
+//		if (args.length < 3) {
+//			System.out.print("Arguments not found. ");
+//			System.out.println("Expected: path/for/downloaded/files /path/to/articles_keys mobile_wiki_website");
+//			System.out.println("Example: ./downloaded ./articles_keys.txt http://en.m.wikipedia.org");
+//			return;
+//		}
+		
 		String path = "/ext/wiki";
-		String dwlPath = path + "/downloaded";
+		String htmlPath = path + "/downloaded";
+		String mediaPath = path + "/media";
 		
 		LogPool logPool = new BasicLogPool();
-		logPool.setSuccessLogFile(new File(path + "/words-succes.txt"));
-		logPool.setErrorLogFile(new File(path + "/words-error.txt"));
-		logPool.setDebugLogFile(new File(path + "/words-not-found.txt"));
+		logPool.setSuccessLogFile(new File(path + "/articles-succes.txt"));
+		logPool.setErrorLogFile(new File(path + "/articles-error.txt"));
+		logPool.setDebugLogFile(new File(path + "/articles-not-found.txt"));
 		
-		JobRunner runner = new TextLinesJobRunner(new File(path + "/words.txt"));
+		JobRunner runner = new TextLinesJobRunner(new File(path + "/articles_keys.txt"));
 			
-		runner.run(new DownloadWordsLineRunnable(logPool, dwlPath));
+		runner.run(new DownloadWordsLineRunnable(logPool, htmlPath, mediaPath));
 		
 	}
 	
 	private static class DownloadWordsLineRunnable extends AbstractHtmlJob {
 		
-		public DownloadWordsLineRunnable(LogPool inlLogPool, String inDwlPath) throws IOException {
-			super(inlLogPool, "", "");
+		public DownloadWordsLineRunnable(LogPool inlLogPool, String inOutHtmlPath, String inOutMediaPath) throws IOException {
+			super(inlLogPool, inOutHtmlPath, inOutMediaPath);
 		}
 
 		@Override
@@ -52,7 +61,7 @@ public class WikiListDownloader {
 			
 			String link = WikiUtils.createLinkFromWord(HOST, word);
 			
-			File curFile = new File(outHtmlPath + File.separator + ConversionUtils.mapWordToFileName(word));
+			File curFile = new File(outHtmlPath + File.separator + FileUtils.title2FileName(word));
 
 			DownloadUtils.DownloadStatus status = DownloadUtils.download(curFile, link);
 			if (status == DownloadUtils.DownloadStatus.NOT_FOUND) {

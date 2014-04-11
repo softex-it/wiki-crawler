@@ -139,7 +139,7 @@ public abstract class AbstractHtmlJob implements JobRunnable {
 		
 		String outHtml = processOutput(content, title);
 		
-		saveOutput(outHtml);
+		saveOutput(outHtml, title);
 		//FileUtils.string2File(outHtmlPath + File.separator + jobData.getFileName(), outHtml);
 		
 		return true;
@@ -155,10 +155,10 @@ public abstract class AbstractHtmlJob implements JobRunnable {
 	}
 	
 	protected String processOutput(Element content, String inTitle) throws Exception {
-		return content.html(); // "<br>&nbsp;"
+		return content.html();
 	}
 	
-	protected void saveOutput(String output) throws Exception {
+	protected void saveOutput(String output, String inTitle) throws Exception {
 		log.warn("Override this method to save output: {}", output);
 	}
 	
@@ -220,7 +220,6 @@ public abstract class AbstractHtmlJob implements JobRunnable {
 	}
 	
 	protected void processImage(Element image, String inFileName) throws Exception {
-		//JsoupUtils.filterImageAttributes(image);
 		imagesLinked++;
 	}
 	
@@ -233,8 +232,8 @@ public abstract class AbstractHtmlJob implements JobRunnable {
 		outWriter.flush();
 	}
 	
-	protected String filename2Title(String fileName) {
-		return FileUtils.fileName2Title(fileName);
+	protected String title2FileName(String title) {
+		return FileUtils.title2FileName(title);
 	}
 
 }

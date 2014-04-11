@@ -28,6 +28,7 @@ public class HtmlToSourceConverterJob extends AbstractHtmlJob {
 		
 		String title = jobData.getTitle();
 		String article = ConversionUtils.removeLineBreaks(jobData.getContent());
+		article = ConversionUtils.compressHtml(article);
 		
 		outWriter.write(title + "  " + article + "\r\n");
 		outWriter.flush();

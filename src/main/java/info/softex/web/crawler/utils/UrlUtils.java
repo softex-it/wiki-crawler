@@ -38,5 +38,13 @@ public class UrlUtils {
 			return null;
 		}
 	}
+	
+	public static String extractJumpId(String url) {
+		int jumpPos = url.indexOf("#");
+		if (jumpPos > 0) {
+			return url.substring(jumpPos);
+		}
+		return null;
+	}
 
 }

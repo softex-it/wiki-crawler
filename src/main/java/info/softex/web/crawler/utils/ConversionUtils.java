@@ -28,14 +28,6 @@ public class ConversionUtils {
 		return s.replaceAll("_", " ");
 	}
 	
-	public static String extractJumpId(String url) {
-		int jumpPos = url.indexOf("#");
-		if (jumpPos > 0) {
-			return url.substring(jumpPos);
-		}
-		return null;
-	}
-	
 	public static String replaceIncorrectSymbols(String s) {
 		// Replace 2-symb й with 1-symb: "и" + "\u00ea"
 		if (s.contains(ikrLower)) {
@@ -85,16 +77,6 @@ public class ConversionUtils {
 	
 	public static String removeLineBreaks(String text) {
 		return text.replaceAll("(\\r|\\n)", " ").trim();
-	}
-	
-	public static String mapWordToFileName(String word) {
-		String fileName = word.replaceAll("/", "&frasl");
-		return fileName.trim() + HTML_EXT;
-	}
-	
-	public static String mapFileNameToWord(String fileName) {
-		String word = fileName.replaceAll("&frasl", "/");
-		return word.substring(0, word.length() - HTML_EXT.length()).trim();
 	}
 	
 	public static String compressHtml(String html) throws IOException {
