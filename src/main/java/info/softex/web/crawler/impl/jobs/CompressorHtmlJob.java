@@ -2,9 +2,9 @@ package info.softex.web.crawler.impl.jobs;
 
 import info.softex.web.crawler.api.JobData;
 import info.softex.web.crawler.api.LogPool;
+import info.softex.web.crawler.api.WriterPool;
 import info.softex.web.crawler.utils.ConversionUtils;
 
-import java.io.File;
 import java.io.IOException;
 
 /**
@@ -16,8 +16,8 @@ import java.io.IOException;
  */
 public class CompressorHtmlJob extends AbstractHtmlJob {
 
-	public CompressorHtmlJob(LogPool inLogPool, File inOutFile) throws IOException {
-		super(inLogPool, inOutFile);
+	public CompressorHtmlJob(LogPool inLogPool, WriterPool inWriterPool) throws IOException {
+		super(inLogPool, inWriterPool);
 	}
 	
 	@Override
@@ -26,7 +26,7 @@ public class CompressorHtmlJob extends AbstractHtmlJob {
 		String content = jobData.getContent();
 		
 		String output = title + "  " + ConversionUtils.compressHtml(content);
-		writeOutput2Writer(output);
+		writeOutput1(output);
 		
 		return true;
 	}

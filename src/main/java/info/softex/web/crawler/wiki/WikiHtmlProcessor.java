@@ -8,9 +8,11 @@ import static info.softex.web.crawler.utils.HtmlConstants.STL_MARGIN_LEFT;
 import static info.softex.web.crawler.utils.HtmlConstants.STL_MARGIN_RIGHT;
 import info.softex.web.crawler.api.JobRunner;
 import info.softex.web.crawler.api.LogPool;
+import info.softex.web.crawler.api.WriterPool;
 import info.softex.web.crawler.filters.ImageFileFilter;
-import info.softex.web.crawler.impl.BasicLogPool;
 import info.softex.web.crawler.impl.jobs.AbstractHtmlJob;
+import info.softex.web.crawler.impl.pools.BasicLogPool;
+import info.softex.web.crawler.impl.pools.BasicWriterPool;
 import info.softex.web.crawler.impl.runners.HtmlFilesJobRunner;
 import info.softex.web.crawler.utils.ConversionUtils;
 import info.softex.web.crawler.utils.DownloadUtils;
@@ -70,11 +72,11 @@ public class WikiHtmlProcessor {
 		logPool.setDebugLogFile(new File("/ext/wiki/linksDebug.txt"));
 		//logPool.setImageDebugLogFile(new File("/ext/wiki/imagesDebug.txt"));
 		
-		WikiHtmlFileJob wikiJob = new WikiHtmlFileJob(
-			logPool,
-			"/ext/wiki/articles_html",
-			"/ext/wiki/media"
-		);	
+		WriterPool writerPool = BasicWriterPool.create().
+			outputHtmlPath("/ext/wiki/articles_html").
+			outputMediaPath("/ext/wiki/media");
+		
+		WikiHtmlFileJob wikiJob = new WikiHtmlFileJob(logPool, writerPool);	
 		
 		//WikiHtmlFileJob wikiJob = new WikiHtmlFileJob(logPool, new File("/ext/wiki/articles.txt"));
 		
@@ -88,12 +90,8 @@ public class WikiHtmlProcessor {
 		
 		private Set<String> absentLinks = new HashSet<String>();
 		
-		public WikiHtmlFileJob(LogPool inLogPool, String inHtmlPath, String inMediaPath) throws IOException {
-			super(inLogPool, inHtmlPath, inMediaPath);
-		}
-		
-		public WikiHtmlFileJob(LogPool inLogPool, File inOutFile) throws IOException {
-			super(inLogPool, inOutFile);
+		public WikiHtmlFileJob(LogPool inLogPool, WriterPool inWriterPool) throws IOException {
+			super(inLogPool, inWriterPool);
 		}
 		
 		@Override
@@ -244,7 +242,7 @@ public class WikiHtmlProcessor {
 
 						imgFileName = imgFileName.toLowerCase();
 						
-						File imgFile = new File(outMediaPath + File.separator + imgFileName);
+						File imgFile = new File(writerPool.getMediaFolderPath() + File.separator + imgFileName);
 						DownloadUtils.DownloadStatus status = DownloadUtils.download(imgFile, src);
 						if (status == DownloadUtils.DownloadStatus.EXISTS || status == DownloadUtils.DownloadStatus.DOWNLOADED) {
 							image.attr(ATT_SRC, imgFileName);
@@ -278,7 +276,7 @@ public class WikiHtmlProcessor {
 		@Override
 		protected void saveOutput(String output, String inTitle) throws Exception {
 			String fileName = FileUtils.title2FileName(inTitle);
-			FileUtils.string2File(outHtmlPath + File.separator + fileName, output);
+			FileUtils.string2File(writerPool.getHtmlFolderPath() + File.separator + fileName, output);
 		}
 		
 		protected static boolean isImageWhiteListed(String name) {

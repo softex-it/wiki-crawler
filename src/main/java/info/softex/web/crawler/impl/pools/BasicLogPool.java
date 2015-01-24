@@ -1,4 +1,4 @@
-package info.softex.web.crawler.impl;
+package info.softex.web.crawler.impl.pools;
 
 import static info.softex.web.crawler.utils.FileUtils.closeWriter;
 import info.softex.web.crawler.api.LogPool;

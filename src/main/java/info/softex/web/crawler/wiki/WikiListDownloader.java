@@ -3,8 +3,10 @@ package info.softex.web.crawler.wiki;
 import info.softex.web.crawler.api.JobData;
 import info.softex.web.crawler.api.JobRunner;
 import info.softex.web.crawler.api.LogPool;
-import info.softex.web.crawler.impl.BasicLogPool;
+import info.softex.web.crawler.api.WriterPool;
 import info.softex.web.crawler.impl.jobs.AbstractHtmlJob;
+import info.softex.web.crawler.impl.pools.BasicLogPool;
+import info.softex.web.crawler.impl.pools.BasicWriterPool;
 import info.softex.web.crawler.impl.runners.TextLinesJobRunner;
 import info.softex.web.crawler.utils.DownloadUtils;
 import info.softex.web.crawler.utils.FileUtils;
@@ -42,16 +44,18 @@ public class WikiListDownloader {
 		logPool.setErrorLogFile(new File(path + "/articles-error.txt"));
 		logPool.setDebugLogFile(new File(path + "/articles-not-found.txt"));
 		
+		WriterPool writerPool = BasicWriterPool.create().outputHtmlPath(htmlPath).outputMediaPath(mediaPath);
+		
 		JobRunner runner = new TextLinesJobRunner(new File(path + "/articles_keys.txt"));
 			
-		runner.run(new DownloadWordsLineRunnable(logPool, htmlPath, mediaPath));
+		runner.run(new DownloadWordsLineRunnable(logPool, writerPool));
 		
 	}
 	
 	private static class DownloadWordsLineRunnable extends AbstractHtmlJob {
 		
-		public DownloadWordsLineRunnable(LogPool inlLogPool, String inOutHtmlPath, String inOutMediaPath) throws IOException {
-			super(inlLogPool, inOutHtmlPath, inOutMediaPath);
+		public DownloadWordsLineRunnable(LogPool inlLogPool, WriterPool inWriterPool) throws IOException {
+			super(inlLogPool, inWriterPool);
 		}
 
 		@Override
@@ -61,7 +65,7 @@ public class WikiListDownloader {
 			
 			String link = WikiUtils.createLinkFromWord(HOST, word);
 			
-			File curFile = new File(outHtmlPath + File.separator + FileUtils.title2FileName(word));
+			File curFile = new File(writerPool.getHtmlFolderPath() + File.separator + FileUtils.title2FileName(word));
 
 			DownloadUtils.DownloadStatus status = DownloadUtils.download(curFile, link);
 			if (status == DownloadUtils.DownloadStatus.NOT_FOUND) {

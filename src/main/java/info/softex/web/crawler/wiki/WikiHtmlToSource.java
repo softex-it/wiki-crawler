@@ -5,8 +5,6 @@ import info.softex.web.crawler.api.JobRunner;
 import info.softex.web.crawler.impl.jobs.HtmlToSourceConverterJob;
 import info.softex.web.crawler.impl.runners.HtmlFilesJobRunner;
 
-import java.io.File;
-
 /**
  * 
  * @since version 1.0,	03/18/2014
@@ -23,8 +21,8 @@ public class WikiHtmlToSource {
 		);
 		
 		JobRunnable htmlToSourceJob = new HtmlToSourceConverterJob(
-			new File("/ext/wiki/articles.txt")
-			// new File("/ext/articles.txt")
+			"/ext/wiki/articles.txt"
+			// "/ext/articles.txt"
 		);
 		
 		runner.run(htmlToSourceJob);

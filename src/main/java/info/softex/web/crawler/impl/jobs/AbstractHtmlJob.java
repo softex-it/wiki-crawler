@@ -1,121 +1,34 @@
 package info.softex.web.crawler.impl.jobs;
 
 import info.softex.web.crawler.api.JobData;
-import info.softex.web.crawler.api.JobRunnable;
 import info.softex.web.crawler.api.LogPool;
+import info.softex.web.crawler.api.WriterPool;
 import info.softex.web.crawler.utils.FileUtils;
 import info.softex.web.crawler.utils.JsoupUtils;
 
-import java.io.BufferedWriter;
-import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
+ * Abstract processing job for HTML content. It simplifies creation of custom processors.
  * 
  * @since version 1.0,	03/22/2014
+ * 
+ * @modified version 2.0,	01/21/2015
  * 
  * @author Dmitry Viktorov
  *
  */
-public abstract class AbstractHtmlJob implements JobRunnable {
+public abstract class AbstractHtmlJob extends AbstractJob {
 	
-	protected final Logger log = LoggerFactory.getLogger(this.getClass());
-	
-	protected String outHtmlPath;
-	protected String outMediaPath;
-	
-	
-	protected BufferedWriter outWriter;
-	
-	protected final LogPool logPool;
-	
-	protected final HashMap<String, String> wordFileMap = new HashMap<String, String>();
-	
-	protected final Set<String> imagesRemovedSet = new HashSet<String>(); 
-	
-	protected int linksLinked = 0;
-	protected int linksRemoved = 0;
-	protected int linksTotal = 0;
-	protected int linksJump = 0;
-	protected int linksExternal = 0;
-	
-	protected int soundsLinked = 0;
-	protected int soundsRemoved = 0;
-	protected int soundsTotal = 0;
-	
-	protected int imagesLinked = 0;
-	protected int imagesRemoved = 0;
-	protected int imagesTotal = 0;
-	
-	public AbstractHtmlJob(LogPool inLogPool, String inOutHtmlPath, String inOutMediaPath) throws IOException {
-		if (inOutHtmlPath == null || inOutHtmlPath.isEmpty()) {
-			throw new IllegalArgumentException("Out HTML Path can't be null or empty");
-		}
-		this.logPool = inLogPool;
-		
-		this.outHtmlPath = inOutHtmlPath;
-		this.outMediaPath = inOutMediaPath;
+	public AbstractHtmlJob(LogPool inLogPool, WriterPool inWriterPool) throws IOException {
+		super(inLogPool, inWriterPool);
+	}
 
-		new File(outHtmlPath).mkdirs();
-		new File(outMediaPath).mkdirs();
-	}
-	
-	public AbstractHtmlJob(LogPool inLogPool, File inOutFile) throws IOException {
-		if (inOutFile == null) {
-			throw new IllegalArgumentException("Out File can't be null");
-		}
-		this.logPool = inLogPool;
-		this.outWriter = FileUtils.createWriter(inOutFile);
-	}
-	
-	@Override
-	public void injectData(Object... data) throws Exception {
-		
-		File[] htmlFiles = (File[]) data[0];
-
-		log.info("Started creating word mapper");
-		for (int i = 0; i < htmlFiles.length; i++) {
-			wordFileMap.put(htmlFiles[i].getName().toLowerCase(), htmlFiles[i].getName());
-		}
-		log.info("Finished creating word mapper");
-		
-	}
-	
-	@Override
-	public void finish() throws IOException {
-		if (outWriter != null) {
-			outWriter.flush();
-			outWriter.close();
-		}
-		log.info("Job is finished");
-		log.info(
-			"Links | Total/Jump/External: {}/{}/{}; Linked: {}; Removed: {}", 
-			linksTotal, linksJump, linksExternal, linksLinked, linksRemoved
-		);
-		log.info(
-			"Images | Total: {}; Linked: {}; Removed: {}", 
-			imagesTotal, imagesLinked, imagesRemoved
-		);
-		log.info(
-			"Sounds | Total: {}; Linked: {}; Removed: {}", 
-			soundsTotal, soundsLinked, soundsRemoved
-		);
-	}
-	
-	protected String getWordFileMappedName(String inFileName) throws Exception {
-		return wordFileMap.get(inFileName.toLowerCase());
-	}
-	
 	@Override
 	public boolean processItem(JobData jobData) throws Exception {
 		
@@ -142,8 +55,14 @@ public abstract class AbstractHtmlJob implements JobRunnable {
 		saveOutput(outHtml, title);
 		//FileUtils.string2File(outHtmlPath + File.separator + jobData.getFileName(), outHtml);
 		
+		itemsProcessed++;
+		
 		return true;
 		
+	}
+	
+	protected void saveOutput(String output, String inTitle) throws Exception {
+		log.warn("Override this method to save output: {}", output);
 	}
 	
 	protected Element processDocument(Document inDocument, String inTitle) throws Exception {
@@ -156,10 +75,6 @@ public abstract class AbstractHtmlJob implements JobRunnable {
 	
 	protected String processOutput(Element content, String inTitle) throws Exception {
 		return content.html();
-	}
-	
-	protected void saveOutput(String output, String inTitle) throws Exception {
-		log.warn("Override this method to save output: {}", output);
 	}
 	
 	protected void processLinks(Element content, String inTitle) throws Exception {
@@ -227,13 +142,8 @@ public abstract class AbstractHtmlJob implements JobRunnable {
 		soundsLinked++;
 	}
 	
-	protected void writeOutput2Writer(String output) throws IOException {
-		outWriter.write(output + "\r\n");
-		outWriter.flush();
-	}
-	
 	protected String title2FileName(String title) {
 		return FileUtils.title2FileName(title);
 	}
-
+	
 }

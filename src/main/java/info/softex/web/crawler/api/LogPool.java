@@ -20,7 +20,6 @@ public interface LogPool {
 	public void setSuccessLogFile(File inFile) throws IOException;
 	public void setErrorLogFile(File inFile) throws IOException;
 	public void setDebugLogFile(File inFile) throws IOException;
-	
 	public void setImageDebugLogFile(File inFile) throws IOException;
 	
 	public void close() throws IOException;
