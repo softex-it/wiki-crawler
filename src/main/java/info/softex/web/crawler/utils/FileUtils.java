@@ -80,7 +80,7 @@ public class FileUtils {
 		return f.exists() && f.getCanonicalPath().endsWith(f.getName());
 	}
 	
-	public static void copyFile(File sourceFile, File destFile) throws IOException {
+	public static void copyFile(File sourceFile, File destFile, boolean append) throws IOException {
 		
 	    if(!destFile.exists()) {
 	        destFile.createNewFile();
@@ -91,8 +91,15 @@ public class FileUtils {
 
 	    try {
 	        source = new FileInputStream(sourceFile).getChannel();
-	        destination = new FileOutputStream(destFile).getChannel();
-	        destination.transferFrom(source, 0, source.size());
+	        destination = new FileOutputStream(destFile, append).getChannel();
+	        
+	        // Move position to the end if file must be appended
+	        long position = 0;
+	        if (append) {
+	        	position = destination.size();
+	        }
+	        
+	        destination.transferFrom(source, position, source.size());
 	    } finally {
 	        if(source != null) {
 	            source.close();
@@ -102,6 +109,7 @@ public class FileUtils {
 	        }
 	    }
 	}
+	
 	
 	public static String title2FileName(String title) {
 		for (Map.Entry<String, String> repEntry : FILE_NAME_REPLACEMENTS.entrySet()) {
