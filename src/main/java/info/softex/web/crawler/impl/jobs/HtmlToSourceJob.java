@@ -9,33 +9,34 @@ import java.io.IOException;
 
 /**
  * 
- * @since version 1.0,	03/18/2014
- * 
- * @modified version 2.0,	01/21/2015
+ * @since version 1.0,	04/05/2014
  * 
  * @author Dmitry Viktorov
  *
  */
-public class HtmlToSourceConverterJob extends AbstractHtmlJob {
-
-	public HtmlToSourceConverterJob(String inPath) throws IOException {
-		super(new BasicLogPool(), BasicWriterPool.create().outputFile1(inPath));
-	}
+public class HtmlToSourceJob extends AbstractJob {
 	
-	@Override
-	public void injectData(Object... data) throws Exception {}
+	private final boolean compressHtml;
+
+	public HtmlToSourceJob(String filePath, boolean inCompressHtml) throws IOException {
+		super(new BasicLogPool(), BasicWriterPool.create().outputFile1(filePath));
+		this.compressHtml = inCompressHtml;
+	}
 	
 	@Override
 	public boolean processItem(JobData jobData) throws Exception {
-		
 		String title = jobData.getTitle();
-		String article = ConversionUtils.removeLineBreaks(jobData.getContent());
-		article = ConversionUtils.compressHtml(article);
+		String article = jobData.getContent();
 		
+		article = ConversionUtils.removeLineBreaks(article);
+		
+		if (compressHtml) {
+			article = ConversionUtils.compressHtml(article);
+		}
+
 		writeOutput1(title + "  " + article);
 		
 		return true;
-		
 	}
-	
+
 }

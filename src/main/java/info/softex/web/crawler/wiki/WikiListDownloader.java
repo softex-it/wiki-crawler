@@ -15,8 +15,18 @@ import java.io.File;
 import java.io.IOException;
 
 /**
+ * Wiki Downloader that goes over the list of Wiki keys and downloads pages.
+ * The keys can be extracted from Wiki XML dump with Dictan-Converter.
+ * All Wiki XML files are available at http://dumps.wikimedia.org
+ * EN: http://dumps.wikimedia.org/enwiki/
+ * RU: http://dumps.wikimedia.org/ruwiki/
+ * 
+ * Usually the right base to download is marked as 
+ * "Recombine all pages, current versions only."
  * 
  * @since version 1.0,	03/15/2014
+ * 
+ * @since modified 2.1,	01/25/2015
  * 
  * @author Dmitry Viktorov
  *
@@ -39,14 +49,16 @@ public class WikiListDownloader {
 		String htmlPath = path + "/downloaded";
 		String mediaPath = path + "/media";
 		
-		LogPool logPool = new BasicLogPool();
-		logPool.setSuccessLogFile(new File(path + "/articles-succes.txt"));
-		logPool.setErrorLogFile(new File(path + "/articles-error.txt"));
-		logPool.setDebugLogFile(new File(path + "/articles-not-found.txt"));
+		LogPool logPool = BasicLogPool.create().
+			errorFile(path + "/articles-error.txt").
+			successFile(path + "/articles-succes.txt").
+			debugFile(path + "/articles-not-found.txt");
 		
-		WriterPool writerPool = BasicWriterPool.create().outputHtmlPath(htmlPath).outputMediaPath(mediaPath);
+		WriterPool writerPool = BasicWriterPool.create().
+			outputContentDir(htmlPath).
+			outputMediaDir(mediaPath);
 		
-		JobRunner runner = new TextLinesJobRunner(new File(path + "/articles_keys.txt"));
+		JobRunner runner = new TextLinesJobRunner(path + "/articles_keys.txt");
 			
 		runner.run(new DownloadWordsLineRunnable(logPool, writerPool));
 		
@@ -65,8 +77,8 @@ public class WikiListDownloader {
 			
 			String link = WikiUtils.createLinkFromWord(HOST, word);
 			
-			File curFile = new File(writerPool.getHtmlFolderPath() + File.separator + FileUtils.title2FileName(word));
-
+			File curFile = new File(writerPool.getContentDir() + File.separator + FileUtils.title2FileName(word));
+			
 			DownloadUtils.DownloadStatus status = DownloadUtils.download(curFile, link);
 			if (status == DownloadUtils.DownloadStatus.NOT_FOUND) {
 				logPool.logDebug(word + "\t: " + status);

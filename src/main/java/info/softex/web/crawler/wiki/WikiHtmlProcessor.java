@@ -13,7 +13,7 @@ import info.softex.web.crawler.filters.ImageFileFilter;
 import info.softex.web.crawler.impl.jobs.AbstractHtmlJob;
 import info.softex.web.crawler.impl.pools.BasicLogPool;
 import info.softex.web.crawler.impl.pools.BasicWriterPool;
-import info.softex.web.crawler.impl.runners.HtmlFilesJobRunner;
+import info.softex.web.crawler.impl.runners.FilesJobRunner;
 import info.softex.web.crawler.utils.ConversionUtils;
 import info.softex.web.crawler.utils.DownloadUtils;
 import info.softex.web.crawler.utils.FileUtils;
@@ -35,6 +35,8 @@ import org.jsoup.select.Elements;
  * 
  * @since version 1.0,	03/17/2014
  * 
+ * @since modified 2.1,	01/25/2015
+ * 
  * @author Dmitry Viktorov
  *
  */
@@ -42,7 +44,7 @@ public class WikiHtmlProcessor {
 	
 	//private static final Logger log = LoggerFactory.getLogger(WikiHtmlProcessor.class);
 	
-	private final static int IMG_SQUARE_MAX = 50 * 50;
+	private final static int IMG_SQUARE_MAX = 60 * 60;
 	
 	private final static ImageFileFilter imageFilter = new ImageFileFilter();
 	
@@ -59,22 +61,32 @@ public class WikiHtmlProcessor {
 		// "template"
 	};
 	
+	// Replace symbols ...
+	//	for (int i = 0; i < sortedList.size(); i++) {
+	//		String word = sortedList.get(i);
+	//		if (word.startsWith("\u2026")) {
+	//			word = "..." + word.substring(1);
+	//			sortedList.set(i, word);
+	//		}
+	//	}
+	
 	public static void main(String[] args) throws Exception {
 		
-		JobRunner runner = new HtmlFilesJobRunner(
+		JobRunner runner = new FilesJobRunner(
 			"/ext/wiki/downloaded",
 			//"/ext/wiki/experiment",
 			null
 		);
 		
-		LogPool logPool = new BasicLogPool();
-		logPool.setErrorLogFile(new File("/ext/wiki/linksError.txt"));
-		logPool.setDebugLogFile(new File("/ext/wiki/linksDebug.txt"));
-		//logPool.setImageDebugLogFile(new File("/ext/wiki/imagesDebug.txt"));
+		LogPool logPool = BasicLogPool.create().
+			errorFile("/ext/wiki/linksError.txt").
+			debugFile("/ext/wiki/linksDebug.txt");
+
+		//logPool.imageDebugFile("/ext/wiki/imagesDebug.txt");
 		
 		WriterPool writerPool = BasicWriterPool.create().
-			outputHtmlPath("/ext/wiki/articles_html").
-			outputMediaPath("/ext/wiki/media");
+			outputContentDir("/ext/wiki/articles_html").
+			outputMediaDir("/ext/wiki/media");
 		
 		WikiHtmlFileJob wikiJob = new WikiHtmlFileJob(logPool, writerPool);	
 		
@@ -123,6 +135,15 @@ public class WikiHtmlProcessor {
 			// Remove whitespace style from metadata (i.e. notice about incomplete articles)
 			content.select("table.metadata").select("span").removeAttr("style");
 			
+			// Restyle infobox
+			Elements tablesIB = content.select("table.infobox");
+			for (Element table : tablesIB) {
+				Map<String, String> styles = JsoupUtils.getStyleMap(table);
+				styles.put(STL_FLOAT_KEY, STL_FLOAT_VAL_LEFT);
+				styles.put(STL_MARGIN_RIGHT, "30px");
+				JsoupUtils.setStyleMap(table, styles);
+			}
+			
 			// Restyle pages for float:right (it causes it to move left off screen at low dimension)
 			Elements tables = content.select("table");
 			for (Element table : tables) {
@@ -140,6 +161,9 @@ public class WikiHtmlProcessor {
 				}
 				JsoupUtils.setStyleMap(table, styles);
 			}
+			
+			// Remove all spans with display:none
+			content.select("span[style*=display:none]").remove();
 			
 			// Remove span xml:lang containers
 			JsoupUtils.removeContainerTags(content.select("[xml:lang]"));
@@ -193,7 +217,8 @@ public class WikiHtmlProcessor {
 							href = href.substring(0, href.length() - jumpId.length()).trim();
 						}
 						
-						String realFileName = getWordFileMappedName(FileUtils.title2FileName(href));
+						String realFileName = getFileByLowerCaseName(FileUtils.title2FileName(href).toLowerCase());
+
 						if (realFileName != null) {
 							newHref = FileUtils.fileName2Title(realFileName);
 							if (jumpId != null) {
@@ -202,7 +227,7 @@ public class WikiHtmlProcessor {
 						} else {
 							if (!absentLinks.contains(href)) {
 								absentLinks.add(href);
-								logPool.logDebug(href);
+								logPool.logError(href);
 							}
 							//log.warn("Couldn't find file for link {} at {}", href, inFileName); 
 						}
@@ -242,7 +267,7 @@ public class WikiHtmlProcessor {
 
 						imgFileName = imgFileName.toLowerCase();
 						
-						File imgFile = new File(writerPool.getMediaFolderPath() + File.separator + imgFileName);
+						File imgFile = new File(writerPool.getMediaDir() + File.separator + imgFileName);
 						DownloadUtils.DownloadStatus status = DownloadUtils.download(imgFile, src);
 						if (status == DownloadUtils.DownloadStatus.EXISTS || status == DownloadUtils.DownloadStatus.DOWNLOADED) {
 							image.attr(ATT_SRC, imgFileName);
@@ -276,7 +301,7 @@ public class WikiHtmlProcessor {
 		@Override
 		protected void saveOutput(String output, String inTitle) throws Exception {
 			String fileName = FileUtils.title2FileName(inTitle);
-			FileUtils.string2File(writerPool.getHtmlFolderPath() + File.separator + fileName, output);
+			writerPool.writeContentFile(fileName, output);
 		}
 		
 		protected static boolean isImageWhiteListed(String name) {

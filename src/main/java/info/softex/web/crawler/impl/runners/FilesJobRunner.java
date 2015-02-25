@@ -4,6 +4,7 @@ import info.softex.web.crawler.api.JobRunnable;
 import info.softex.web.crawler.api.JobRunner;
 import info.softex.web.crawler.filters.HtmlFileFilter;
 import info.softex.web.crawler.impl.BasicJobData;
+import info.softex.web.crawler.impl.injectors.FilesLowerCaseToFilesMapInjector;
 import info.softex.web.crawler.utils.FileUtils;
 
 import java.io.File;
@@ -15,25 +16,27 @@ import org.slf4j.LoggerFactory;
 
 /**
  * 
- * @since version 1.0,	03/17/2014
+ * @since version 1.0,		03/17/2014
+ * 
+ * @modified version 2.0,	02/13/2015
  * 
  * @author Dmitry Viktorov
  *
  */
-public class HtmlFilesJobRunner implements JobRunner {
+public class FilesJobRunner implements JobRunner {
 	
 	private final Logger log = LoggerFactory.getLogger(getClass());
 	
-	protected final String inHtmlPath;
+	protected final String inPath;
 	
 	protected final FileFilter fileFilter;
 	
-	public HtmlFilesJobRunner(String inInHtmlPath) throws IOException {
+	public FilesJobRunner(String inInHtmlPath) throws IOException {
 		this(inInHtmlPath, new HtmlFileFilter());
 	}
 	
-	public HtmlFilesJobRunner(String inInHtmlPath, FileFilter inFileFilter) throws IOException {
-		this.inHtmlPath = inInHtmlPath;
+	public FilesJobRunner(String inInHtmlPath, FileFilter inFileFilter) throws IOException {
+		this.inPath = inInHtmlPath;
 		this.fileFilter = inFileFilter;
 	}
 
@@ -42,33 +45,42 @@ public class HtmlFilesJobRunner implements JobRunner {
 		
 		long t1 = System.currentTimeMillis();
 		
-		log.info("Reading files from: {}", inHtmlPath);
-		
-		// HTML file list
-		File[] htmlFiles = null;
-		if (fileFilter != null) {
-			htmlFiles = new File(inHtmlPath).listFiles(fileFilter);
-		} else {
-			htmlFiles = new File(inHtmlPath).listFiles();
+		// Validate the input directory
+		File inDirectory = new File(inPath);
+		if (!inDirectory.exists()) {
+			throw new IllegalArgumentException("Input directory doesn't exist: " + inPath);
+		}
+		if (inDirectory.isFile()) {
+			throw new IllegalArgumentException("Input file was found but directory is expected: " + inPath);
 		}
 		
-		log.info("Finished reading files from: {}", inHtmlPath);
+		log.info("Reading files from: {}. It may take a few minutes.", inPath);
 		
-		job.injectData((Object) htmlFiles);
+		// HTML file list
+		File[] inFiles = null;
+		if (fileFilter != null) {
+			inFiles = new File(inPath).listFiles(fileFilter);
+		} else {
+			inFiles = new File(inPath).listFiles();
+		}
 		
-		int totalFiles = htmlFiles.length;
+		log.info("Finished reading files from: {}. Number of files: {}", inPath, inFiles.length);
+		
+		job.injectData(new FilesLowerCaseToFilesMapInjector(inFiles));
+		
+		int totalFiles = inFiles.length;
 		int ignoredFiles = 0;
 		
 		BasicJobData jobData = new BasicJobData();
 		
-		for (int i = 0; i < htmlFiles.length; i++) {
+		for (int i = 0; i < inFiles.length; i++) {
 			
 			if (i % 50000 == 0 && i > 0) {
 				long partTime = (System.currentTimeMillis() - t1) / 1000;
 				log.info("Processed Items: {}. Total Time: {} sec", i, partTime);
 			}
 
-			File inFile = htmlFiles[i];
+			File inFile = inFiles[i];
 			
 			jobData.setContent(FileUtils.file2String(inFile));
 			jobData.setTitle(FileUtils.fileName2Title(inFile.getName()));
@@ -85,12 +97,10 @@ public class HtmlFilesJobRunner implements JobRunner {
 		
 		int processedFiles = totalFiles - ignoredFiles;
 		long time = (System.currentTimeMillis() - t1) / 1000;
-		log.info("Processing complete. Time: {} sec. Files ignored: {}, processed: {}, total: {}", 
+		log.info("Processing complete. Time: {} sec. Files ignored: {}, processed: {}, total: {}",
 			time, ignoredFiles, processedFiles, totalFiles
 		); 
 		
 	}
-	
-
 
 }

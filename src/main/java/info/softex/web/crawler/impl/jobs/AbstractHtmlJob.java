@@ -7,6 +7,8 @@ import info.softex.web.crawler.utils.FileUtils;
 import info.softex.web.crawler.utils.JsoupUtils;
 
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -16,7 +18,7 @@ import org.jsoup.select.Elements;
 /**
  * Abstract processing job for HTML content. It simplifies creation of custom processors.
  * 
- * @since version 1.0,	03/22/2014
+ * @since version 1.0,		03/22/2014
  * 
  * @modified version 2.0,	01/21/2015
  * 
@@ -24,6 +26,23 @@ import org.jsoup.select.Elements;
  *
  */
 public abstract class AbstractHtmlJob extends AbstractJob {
+	
+	protected final Set<String> linksFound = new HashSet<>();
+	protected final Set<String> linksMissing = new HashSet<>();
+	
+	protected int linksLinked = 0;
+	protected int linksRemoved = 0;
+	protected int linksTotal = 0;
+	protected int linksJump = 0;
+	protected int linksExternal = 0;
+	
+	protected int soundsLinked = 0;
+	protected int soundsRemoved = 0;
+	protected int soundsTotal = 0;
+	
+	protected int imagesLinked = 0;
+	protected int imagesRemoved = 0;
+	protected int imagesTotal = 0;
 	
 	public AbstractHtmlJob(LogPool inLogPool, WriterPool inWriterPool) throws IOException {
 		super(inLogPool, inWriterPool);
@@ -144,6 +163,26 @@ public abstract class AbstractHtmlJob extends AbstractJob {
 	
 	protected String title2FileName(String title) {
 		return FileUtils.title2FileName(title);
+	}
+	
+	@Override
+	public void finish() throws IOException {
+		
+		super.finish();
+		
+		log.info(
+				"Links | Total/Jump/External: {}/{}/{}; Linked: {}; Removed: {}", 
+				linksTotal, linksJump, linksExternal, linksLinked, linksRemoved
+			);
+		log.info(
+			"Images | Total: {}; Linked: {}; Removed: {}", 
+			imagesTotal, imagesLinked, imagesRemoved
+		);
+		log.info(
+			"Sounds | Total: {}; Linked: {}; Removed: {}", 
+			soundsTotal, soundsLinked, soundsRemoved
+		);
+		
 	}
 	
 }

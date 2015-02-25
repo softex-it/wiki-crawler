@@ -76,7 +76,13 @@ public class DownloadUtils {
 		}
 		
 		try {
-			Response resultImageResponse = Jsoup.connect(uri).userAgent(BROWSER).ignoreContentType(true).execute();
+			Response resultImageResponse = Jsoup.connect(uri).
+				userAgent(BROWSER).ignoreContentType(true).
+				//followRedirects(false).
+				execute();
+			
+			//log.error("W " + file.getName() + " R " + resultImageResponse.statusCode());
+			
 			FileOutputStream out = (new FileOutputStream(file));
 	        out.write(resultImageResponse.bodyAsBytes());
 	        out.close();

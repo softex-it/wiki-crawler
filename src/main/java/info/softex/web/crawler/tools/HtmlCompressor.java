@@ -2,9 +2,7 @@ package info.softex.web.crawler.tools;
 
 import info.softex.web.crawler.api.JobRunnable;
 import info.softex.web.crawler.api.JobRunner;
-import info.softex.web.crawler.impl.jobs.CompressorHtmlJob;
-import info.softex.web.crawler.impl.pools.BasicLogPool;
-import info.softex.web.crawler.impl.pools.BasicWriterPool;
+import info.softex.web.crawler.impl.jobs.HtmlToSourceJob;
 import info.softex.web.crawler.impl.runners.SourceLinesJobRunner;
 
 import java.io.File;
@@ -13,16 +11,19 @@ import java.io.File;
  * 
  * @since version 1.0,	04/05/2014
  * 
+ * @since modified 2.1,	01/25/2015
+ * 
  * @author Dmitry Viktorov
  *
  */
 public class HtmlCompressor {
 	
 	public static void main(String[] args) throws Exception {
-		JobRunner runner = new SourceLinesJobRunner(new File ("/ext/wikip/articles.txt"));
-		JobRunnable job = new CompressorHtmlJob(
-			new BasicLogPool(),
-			BasicWriterPool.create().outputFile1("/ext/wikip/articles-condensed.txt"));
+		JobRunner runner = new SourceLinesJobRunner("/ext/wikip/articles.txt");
+		JobRunnable job = new HtmlToSourceJob(
+			"/ext/wikip/articles-condensed.txt",
+			true
+		);
 		
 		runner.run(job);
 	}

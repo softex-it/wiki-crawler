@@ -10,7 +10,9 @@ import org.slf4j.LoggerFactory;
 
 /**
  * 
- * @since version 1.0,	04/04/2014
+ * @since version 1.0,		04/04/2014
+ * 
+ * @modified version 2.1,	01/25/2015
  * 
  * @author Dmitry Viktorov
  *
@@ -21,6 +23,10 @@ public class SourceLinesJobRunner extends TextLinesJobRunner {
 
 	public SourceLinesJobRunner(File inInFile) throws IOException {
 		super(inInFile);
+	}
+	
+	public SourceLinesJobRunner(String inFilePath) throws IOException {
+		super(new File(inFilePath));
 	}
 	
 	@Override

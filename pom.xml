@@ -4,15 +4,19 @@
 
 	<groupId>info.softex</groupId>
 	<artifactId>wiki-crawler</artifactId>
-	<version>2.0</version>
+	<version>2.1</version>
 	<packaging>jar</packaging>	
 
 	<properties>
-		<slf4j.version>1.7.6</slf4j.version>
-		<junit.version>4.11</junit.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<maven.plugin.compiler.version>3.1</maven.plugin.compiler.version>
-		<maven.plugin.surefire.version>2.16</maven.plugin.surefire.version>
+		
+		<slf4j.version>1.7.10</slf4j.version>
+		<jsoup.version>1.8.1</jsoup.version>
+		<junit.version>4.12</junit.version>
+		
+		<maven.plugin.compiler.version>3.2</maven.plugin.compiler.version>
+		<maven.plugin.surefire.version>2.18.1</maven.plugin.surefire.version>
+		
 		<compiler.source.version>1.7</compiler.source.version>
 		<compiler.target.version>1.7</compiler.target.version>
 	</properties>
@@ -22,7 +26,7 @@
 		<dependency>
 			<groupId>org.jsoup</groupId>
 			<artifactId>jsoup</artifactId>
-			<version>1.7.3</version>
+			<version>${jsoup.version}</version>
 		</dependency>
 		 
 		<dependency>

@@ -7,6 +7,8 @@ import java.util.ArrayList;
  * 
  * @since version 1.0,	02/10/2014
  * 
+ * @since modified 2.1,	01/24/2015
+ * 
  * @author Dmitry Viktorov
  *
  */
@@ -26,6 +28,19 @@ public class ConversionUtils {
 	
 	public static String replaceUnderscoresWithSpaces(String s) {
 		return s.replaceAll("_", " ");
+	}
+	
+	public static String replaceUnicodeApostrophes(String s) {
+		// LEFT SINGLE QUOTATION MARK
+		// RIGHT SINGLE QUOTATION MARK
+		return s.replaceAll("\u2018", "'").replaceAll("\u2019", "'");
+	}
+	
+	public static String replaceUnicodeQuotes(String s) {
+		// LEFT DOUBLE QUOTATION MARK
+		// RIGHT DOUBLE QUOTATION MARK
+		return s.replaceAll("\u201C", "\"").
+				replaceAll("\u201D", "\"");
 	}
 	
 	public static String replaceIncorrectSymbols(String s) {
