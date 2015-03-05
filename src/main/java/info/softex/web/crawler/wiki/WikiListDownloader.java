@@ -14,6 +14,13 @@ import info.softex.web.crawler.utils.FileUtils;
 import java.io.File;
 import java.io.IOException;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.GnuParser;
+import org.apache.commons.cli.OptionBuilder;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+
 /**
  * Wiki Downloader that goes over the list of Wiki keys and downloads pages.
  * The keys can be extracted from Wiki XML dump with Dictan-Converter.
@@ -33,19 +40,14 @@ import java.io.IOException;
  */
 public class WikiListDownloader {
 	
-	public static final String HOST = "http://ru.m.wikipedia.org";
+	//public static final String HOST = "http://ru.m.wikipedia.org";
 	//public static final String HOST = "http://uk.m.wikipedia.org";
 	
 	public static void main(String[] args) throws Exception {
 		
-//		if (args.length < 3) {
-//			System.out.print("Arguments not found. ");
-//			System.out.println("Expected: path/for/downloaded/files /path/to/articles_keys mobile_wiki_website");
-//			System.out.println("Example: ./downloaded ./articles_keys.txt http://en.m.wikipedia.org");
-//			return;
-//		}
+		WikiListDownloaderCLI cli = new WikiListDownloaderCLI(args);
 		
-		String path = "/ext/wiki";
+		String path = cli.getOutputDir();
 		String htmlPath = path + "/downloaded";
 		String mediaPath = path + "/media";
 		
@@ -58,16 +60,19 @@ public class WikiListDownloader {
 			outputContentDir(htmlPath).
 			outputMediaDir(mediaPath);
 		
-		JobRunner runner = new TextLinesJobRunner(path + "/articles_keys.txt");
+		JobRunner runner = new TextLinesJobRunner(cli.getInputFile());
 			
-		runner.run(new DownloadWordsLineRunnable(logPool, writerPool));
+		runner.run(new DownloadWordsLineRunnable(cli.getHttpURL(), logPool, writerPool));
 		
 	}
 	
 	private static class DownloadWordsLineRunnable extends AbstractHtmlJob {
 		
-		public DownloadWordsLineRunnable(LogPool inlLogPool, WriterPool inWriterPool) throws IOException {
+		protected final String httpUrl;
+		
+		public DownloadWordsLineRunnable(String inHttpUrl, LogPool inlLogPool, WriterPool inWriterPool) throws IOException {
 			super(inlLogPool, inWriterPool);
+			this.httpUrl = inHttpUrl;
 		}
 
 		@Override
@@ -75,7 +80,7 @@ public class WikiListDownloader {
 
 			String word = jobData.getContent();
 			
-			String link = WikiUtils.createLinkFromWord(HOST, word);
+			String link = WikiUtils.createLinkFromWord(httpUrl, word);
 			
 			File curFile = new File(writerPool.getContentDir() + File.separator + FileUtils.title2FileName(word));
 			
@@ -96,6 +101,65 @@ public class WikiListDownloader {
 
 		}
 
+	}
+	
+	private static class WikiListDownloaderCLI {
+		
+		protected String inputFile;
+		protected String outputDir;
+		protected String httpURL;
+		
+		public WikiListDownloaderCLI(String[] args) throws ParseException, IOException {
+			
+			// Create Options object
+			Options options = new Options();
+			
+			options.addOption(
+				OptionBuilder.withDescription("input file with words to download").
+				hasArg().isRequired().create("i"));
+
+			options.addOption(
+				OptionBuilder.withDescription("output folder for the downloaded files and logs").
+				hasArg().isRequired().create("o"));
+
+			options.addOption(
+				OptionBuilder.withDescription("http url to use for downloading").
+				hasArg().isRequired().create("u"));
+			
+			CommandLineParser parser = new GnuParser();
+			CommandLine cmd = parser.parse(options, args);
+			
+			inputFile = cmd.getOptionValue("i");
+			outputDir = cmd.getOptionValue("o");
+			httpURL = cmd.getOptionValue("u");
+			
+			if (!FileUtils.fileExists(new File(inputFile))) {
+				new IllegalArgumentException("Input file is not found: " + inputFile);
+			}
+			
+			File outputDirFile = new File(outputDir);
+			if (!outputDirFile.exists()) {
+				outputDirFile.mkdirs();
+			}
+			
+			if (!httpURL.startsWith("http")) {
+				new IllegalArgumentException("HTTP URL for download is defined incorrectly: " + httpURL);
+			}
+			
+		}
+		
+		public String getInputFile() {
+			return inputFile;
+		}
+		
+		public String getOutputDir() {
+			return outputDir;
+		}
+		
+		public String getHttpURL() {
+			return httpURL;
+		}
+		
 	}
 
 }

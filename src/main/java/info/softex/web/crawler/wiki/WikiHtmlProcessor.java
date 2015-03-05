@@ -42,6 +42,8 @@ import org.jsoup.select.Elements;
  */
 public class WikiHtmlProcessor {
 	
+	public static final String HOST = "http://ru.m.wikipedia.org";
+	
 	//private static final Logger log = LoggerFactory.getLogger(WikiHtmlProcessor.class);
 	
 	private final static int IMG_SQUARE_MAX = 60 * 60;
@@ -206,7 +208,7 @@ public class WikiHtmlProcessor {
 					href = UrlUtils.decodeURL(href);
 							
 					if (href.contains(":")) { // Fix special links to refer to http
-						href = WikiListDownloader.HOST + startPattern + href;
+						href = HOST + startPattern + href;
 						linksExternal++;
 					} else {
 						href = ConversionUtils.replaceUnderscoresWithSpaces(href);
