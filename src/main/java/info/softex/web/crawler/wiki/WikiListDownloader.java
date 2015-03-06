@@ -109,6 +109,7 @@ public class WikiListDownloader {
 		protected String outputDir;
 		protected String httpURL;
 		
+		@SuppressWarnings("static-access")
 		public WikiListDownloaderCLI(String[] args) throws ParseException, IOException {
 			
 			// Create Options object
