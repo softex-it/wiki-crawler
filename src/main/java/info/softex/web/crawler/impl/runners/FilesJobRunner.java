@@ -31,12 +31,12 @@ public class FilesJobRunner implements JobRunner {
 	
 	protected final FileFilter fileFilter;
 	
-	public FilesJobRunner(String inInHtmlPath) throws IOException {
-		this(inInHtmlPath, new HtmlFileFilter());
+	public FilesJobRunner(String inInPath) throws IOException {
+		this(inInPath, new HtmlFileFilter());
 	}
 	
-	public FilesJobRunner(String inInHtmlPath, FileFilter inFileFilter) throws IOException {
-		this.inPath = inInHtmlPath;
+	public FilesJobRunner(String inInPath, FileFilter inFileFilter) throws IOException {
+		this.inPath = inInPath;
 		this.fileFilter = inFileFilter;
 	}
 

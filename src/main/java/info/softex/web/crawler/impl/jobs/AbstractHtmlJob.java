@@ -72,8 +72,7 @@ public abstract class AbstractHtmlJob extends AbstractJob {
 		String outHtml = processOutput(content, title);
 		
 		saveOutput(outHtml, title);
-		//FileUtils.string2File(outHtmlPath + File.separator + jobData.getFileName(), outHtml);
-		
+
 		itemsProcessed++;
 		
 		return true;
@@ -126,11 +125,8 @@ public abstract class AbstractHtmlJob extends AbstractJob {
 					JsoupUtils.removeContainerTag(link);
 					linksRemoved++;
 				}
-			
 			}
-		
 		}
-
 	}
 	
 	protected void processImages(Element content, String fileName) throws Exception {
@@ -167,13 +163,11 @@ public abstract class AbstractHtmlJob extends AbstractJob {
 	
 	@Override
 	public void finish() throws IOException {
-		
 		super.finish();
-		
 		log.info(
-				"Links | Total/Jump/External: {}/{}/{}; Linked: {}; Removed: {}", 
-				linksTotal, linksJump, linksExternal, linksLinked, linksRemoved
-			);
+			"Links | Total/Jump/External: {}/{}/{}; Linked: {}; Removed: {}", 
+			linksTotal, linksJump, linksExternal, linksLinked, linksRemoved
+		);
 		log.info(
 			"Images | Total: {}; Linked: {}; Removed: {}", 
 			imagesTotal, imagesLinked, imagesRemoved
@@ -182,7 +176,6 @@ public abstract class AbstractHtmlJob extends AbstractJob {
 			"Sounds | Total: {}; Linked: {}; Removed: {}", 
 			soundsTotal, soundsLinked, soundsRemoved
 		);
-		
 	}
 	
 }

@@ -26,7 +26,7 @@ public class UrlUtils {
 	public static String decodeURL(String url) {
 		try {
 			return URLDecoder.decode(url, UTF8);
-		} catch (UnsupportedEncodingException e) {
+		} catch (Exception e) {
 			return null;
 		}
 	}

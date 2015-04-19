@@ -3,8 +3,6 @@ package info.softex.web.crawler.impl.injectors;
 import info.softex.web.crawler.api.DataInjector;
 import info.softex.web.crawler.api.JobData;
 import info.softex.web.crawler.api.JobRunner;
-import info.softex.web.crawler.api.LogPool;
-import info.softex.web.crawler.api.WriterPool;
 import info.softex.web.crawler.impl.jobs.AbstractJob;
 import info.softex.web.crawler.impl.pools.BasicLogPool;
 import info.softex.web.crawler.impl.pools.BasicWriterPool;

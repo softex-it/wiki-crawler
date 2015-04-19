@@ -74,7 +74,7 @@ public class TextLinesJobRunner implements JobRunner {
 		long time = (System.currentTimeMillis() - t1) / 1000;
 		log.info("Processing complete. Time: {} sec. Items ignored: {}, processed: {}, total: {}", 
 			time, ignoredItems, processedItems, totalItems
-		); 
+		);
 		
 	}
 	

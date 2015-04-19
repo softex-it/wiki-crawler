@@ -7,7 +7,7 @@ import info.softex.web.crawler.api.WriterPool;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -28,17 +28,17 @@ public abstract class AbstractJob implements JobRunnable {
 	protected final Logger log = LoggerFactory.getLogger(getClass());
 	
 	protected final WriterPool writerPool;
-	
 	protected final LogPool logPool;
 	
 	protected final HashMap<DataInjector.DataKey, Object> injectedData = new HashMap<>();
 	
-	protected final Set<String> imagesRemovedSet = new HashSet<String>(); 
+	protected final Set<String> imagesRemovedSet = new LinkedHashSet<String>(); 
 	
 	protected int itemsProcessed = 0;
 	
 	protected Map<String, String> lcFiles;
 	protected Map<String, String> lcWords;
+	protected Set<String> matches;
 	
 	public AbstractJob(LogPool inLogPool, WriterPool inWriterPool) throws IOException {
 		this.logPool = inLogPool;
@@ -55,6 +55,7 @@ public abstract class AbstractJob implements JobRunnable {
 		
 		lcFiles = (Map<String, String>) injectedData.get(DataInjector.DataKey.FILES_LC_TO_FILES_MAP);
 		lcWords = (Map<String, String>) injectedData.get(DataInjector.DataKey.WORDS_LC_TO_WORDS_MAP);
+		matches = (Set<String>) injectedData.get(DataInjector.DataKey.MATCHING_SET);
 		
 		return this;
 	}
@@ -75,6 +76,10 @@ public abstract class AbstractJob implements JobRunnable {
 
 	protected String getWordByLowerCaseName(String inFileName) throws Exception {		
 		return lcWords.get(inFileName);
+	}
+	
+	protected boolean containsMatch(String match) {		
+		return matches.contains(match);
 	}
 	
 	protected void writeOutput1(String output) throws IOException {

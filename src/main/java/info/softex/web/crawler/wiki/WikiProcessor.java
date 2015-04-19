@@ -9,11 +9,13 @@ import static info.softex.web.crawler.utils.HtmlConstants.STL_MARGIN_RIGHT;
 import info.softex.web.crawler.api.JobRunner;
 import info.softex.web.crawler.api.LogPool;
 import info.softex.web.crawler.api.WriterPool;
+import info.softex.web.crawler.cli.PageProcessorCLI;
 import info.softex.web.crawler.filters.ImageFileFilter;
 import info.softex.web.crawler.impl.jobs.AbstractHtmlJob;
 import info.softex.web.crawler.impl.pools.BasicLogPool;
 import info.softex.web.crawler.impl.pools.BasicWriterPool;
 import info.softex.web.crawler.impl.runners.FilesJobRunner;
+import info.softex.web.crawler.tools.attributes.MediaDownloadRate;
 import info.softex.web.crawler.utils.ConversionUtils;
 import info.softex.web.crawler.utils.DownloadUtils;
 import info.softex.web.crawler.utils.FileUtils;
@@ -33,25 +35,27 @@ import org.jsoup.select.Elements;
 
 /**
  * 
- * @since version 1.0,	03/17/2014
+ * @since version 1.0,		03/17/2014
  * 
- * @since modified 2.1,	01/25/2015
+ * @modified version 2.1,	01/25/2015
  * 
  * @author Dmitry Viktorov
  *
  */
-public class WikiHtmlProcessor {
-	
-	public static final String HOST = "http://ru.m.wikipedia.org";
-	
+public class WikiProcessor {
+
 	//private static final Logger log = LoggerFactory.getLogger(WikiHtmlProcessor.class);
 	
-	private final static int IMG_SQUARE_MAX = 60 * 60;
+	private final static ImageFileFilter IMAGE_FILTER = new ImageFileFilter();
 	
-	private final static ImageFileFilter imageFilter = new ImageFileFilter();
+	private final static int IMAGE_SQUARE_MAX = 30 * 30;
+	
+//	private final static String[] IMAGE_WHITE_LIST = {
+//		"skeletal", // Chemical diagrams
+//		"/math/"	// Math Expressions
+//	};
 	
 	private final static String[] IMAGE_WHITE_LIST = {
-		//"flag_", "seal_", "coat_of_arms_",
 		"flag", "seal", "coat_of_arms", "coa",
 		"order", "medal",
 		"logo", "icon", "symbol", // Iconic images
@@ -62,59 +66,70 @@ public class WikiHtmlProcessor {
 		
 		// "template"
 	};
-	
-	// Replace symbols ...
-	//	for (int i = 0; i < sortedList.size(); i++) {
-	//		String word = sortedList.get(i);
-	//		if (word.startsWith("\u2026")) {
-	//			word = "..." + word.substring(1);
-	//			sortedList.set(i, word);
-	//		}
-	//	}
-	
+
 	public static void main(String[] args) throws Exception {
 		
-		JobRunner runner = new FilesJobRunner(
-			"/ext/wiki/downloaded",
-			//"/ext/wiki/experiment",
-			null
-		);
+		PageProcessorCLI cli = new PageProcessorCLI(args);
+		String inputDir = cli.getInputDir();
+		String outputDir = cli.getOutputDir();
+		String httpUrl = cli.getHttpURL();
+		MediaDownloadRate mediaRate = cli.getMediaDownloadRate();
 		
 		LogPool logPool = BasicLogPool.create().
-			errorFile("/ext/wiki/linksError.txt").
-			debugFile("/ext/wiki/linksDebug.txt");
+			errorFile(outputDir + File.separator + "links-error.txt").
+			debugFile(outputDir + File.separator + "links-debug.txt");
 
-		//logPool.imageDebugFile("/ext/wiki/imagesDebug.txt");
-		
 		WriterPool writerPool = BasicWriterPool.create().
-			outputContentDir("/ext/wiki/articles_html").
-			outputMediaDir("/ext/wiki/media");
+			outputContentDir(outputDir + File.separator + "articles_html").
+			outputMediaDir(outputDir + File.separator + "media");
 		
-		WikiHtmlFileJob wikiJob = new WikiHtmlFileJob(logPool, writerPool);	
-		
-		//WikiHtmlFileJob wikiJob = new WikiHtmlFileJob(logPool, new File("/ext/wiki/articles.txt"));
-		
+		WikiHtmlFileJob wikiJob = new WikiHtmlFileJob(logPool, writerPool, httpUrl, mediaRate);	
+
+		JobRunner runner = new FilesJobRunner(inputDir, null);
 		runner.run(wikiJob);
 		
 	}
 	
-	private static class WikiHtmlFileJob extends AbstractHtmlJob {
+	protected static class WikiHtmlFileJob extends AbstractHtmlJob {
+
+		protected final Set<String> absentLinks = new HashSet<String>();
 		
-		private String startPattern = "/wiki/";
+		protected final MediaDownloadRate mediaDownloadRate;
+		protected final String httpUrl;
+		protected final String httpLastSegment;
 		
-		private Set<String> absentLinks = new HashSet<String>();
-		
-		public WikiHtmlFileJob(LogPool inLogPool, WriterPool inWriterPool) throws IOException {
+		public WikiHtmlFileJob(LogPool inLogPool, WriterPool inWriterPool, 
+				String inHttpUrl, MediaDownloadRate inMediaDownloadRate) throws IOException {
 			super(inLogPool, inWriterPool);
+			this.mediaDownloadRate = inMediaDownloadRate;
+
+			this.httpUrl = inHttpUrl;
+			
+			// Extract last segment
+			String lastSegment = httpUrl;
+			if (lastSegment.startsWith("http://")) {
+				lastSegment = lastSegment.substring(7);
+			} else if (lastSegment.startsWith("https://")) {
+				lastSegment = lastSegment.substring(8);
+			}
+			
+			lastSegment = UrlUtils.getLastSegment(lastSegment);
+			if (lastSegment != null) {
+				lastSegment += "/";
+			} else {
+				lastSegment = "";
+			}
+			
+			httpLastSegment = lastSegment;
+			
 		}
 		
 		@Override
 		public Element processDocument(Document inDocument, String inTitle) throws Exception {
-//			Element preContent = inDocument.select("div.pre-content").first();
 			Element content = inDocument.select("div.content").first();
-//			if (preContent == null || content == null) {
-//				return null;
-//			}
+			if (content == null) {
+				return null;
+			}
 			Element root = new Element(Tag.valueOf("div"), "");
 			//root.insertChildren(-1, preContent.childNodes());
 			root.append("<h2>" + inTitle + "</h2>");
@@ -128,10 +143,13 @@ public class WikiHtmlProcessor {
 			// Cut page actions from pre-content
 			//content.select("ul#page-actions").remove();
 			
-			// Cut edit links
+			// Remove edit links
 			content.select("a.edit-page").remove();
 			
-			// Cut links for read in different languages
+			// Remove headline anchors (containing § as their body)
+			content.select("a.mw-headline-anchor").remove();
+			
+			// Remove links for read in different languages
 			content.select("div#page-secondary-actions").remove();
 			
 			// Remove whitespace style from metadata (i.e. notice about incomplete articles)
@@ -202,13 +220,12 @@ public class WikiHtmlProcessor {
 			if (href.startsWith("//")) { // Fix incomplete http(s)
 				newHref = "http:" + href;
 				linksExternal++;
-			} else if (href.startsWith(startPattern)) {
-				href = href.substring(startPattern.length());
+			} else if (href.startsWith(httpLastSegment)) {
+				href = href.substring(httpLastSegment.length());
 				if (!href.isEmpty()) {
 					href = UrlUtils.decodeURL(href);
-							
 					if (href.contains(":")) { // Fix special links to refer to http
-						href = HOST + startPattern + href;
+						href = httpUrl + "/" + href; // httpUrl always excludes / at the end
 						linksExternal++;
 					} else {
 						href = ConversionUtils.replaceUnderscoresWithSpaces(href);
@@ -244,29 +261,33 @@ public class WikiHtmlProcessor {
 		@Override
 		protected void processImage(Element image, String inFileName) throws Exception {
 
+			// Remove image if the media download rate is NONE
+			if (mediaDownloadRate == MediaDownloadRate.NONE) {
+				image.remove();
+				imagesRemoved++;
+				return;
+			}
+			
 			JsoupUtils.filterImageAttributes(image);
 			
 			String src = image.attr(ATT_SRC).trim();
-		
 			if (src.startsWith("//")) {
-				src = "http:" + src; 
+				src = "http:" + src;
 			}
 			
 			String decodedSrc = UrlUtils.decodeURL(src).replaceAll("'", "");
 			String lowerSrc = decodedSrc.toLowerCase();
 			
-			// Include symbolic images
-			if (imageFilter.accept(src)) {
-
-				//if (true) {
+			// Include all (full mode) or symbolic images (light mode)
+			if (mediaDownloadRate == MediaDownloadRate.FULL || IMAGE_FILTER.accept(src)) {
 
 				int imgSquare = JsoupUtils.getElementSquare(image);
-				boolean isAllowedSquare = imgSquare > 0 && imgSquare <= IMG_SQUARE_MAX;
+				boolean isAllowedSquare = imgSquare > 0 && imgSquare <= IMAGE_SQUARE_MAX;
 				if (isAllowedSquare || isImageWhiteListed(lowerSrc)) {
 					
 					String imgFileName = UrlUtils.getLastSegment(decodedSrc);
 					if (imgFileName != null) {
-
+						
 						imgFileName = imgFileName.toLowerCase();
 						
 						File imgFile = new File(writerPool.getMediaDir() + File.separator + imgFileName);
@@ -280,12 +301,9 @@ public class WikiHtmlProcessor {
 					
 				}
 			}
+			
 			image.remove();
 			imagesRemoved++;
-//			if (!imagesRemovedSet.contains(src)) {
-//				imagesRemovedSet.add(src);
-//				logPool.logImageDebug(src);
-//			}
 			
 		}
 		

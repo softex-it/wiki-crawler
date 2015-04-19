@@ -15,7 +15,9 @@ public interface DataInjector {
 	
 	public static enum DataKey {
 		FILES_LC_TO_FILES_MAP,
-		WORDS_LC_TO_WORDS_MAP
+		WORDS_LC_TO_WORDS_MAP,
+		
+		MATCHING_SET
 	}
 	
 }

@@ -7,9 +7,9 @@ import info.softex.web.crawler.impl.runners.FilesJobRunner;
 
 /**
  * 
- * @since version 1.0,	03/18/2014
+ * @since version 1.0,		03/18/2014
  * 
- * @since modified 2.1,	01/25/2015
+ * @modified version 2.1,	01/25/2015
  * 
  * @author Dmitry Viktorov
  *
