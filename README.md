@@ -17,8 +17,7 @@ similar to "enwiki-20150304-pages-meta-current.xml.bz2".
 
    It's recommended to unzip the BZ2 file to XML because processing may be very slow with BZ2.
    
-   To download Wikipedia for any other language, you just need to change the language code. E.g. to download
-   for Russian, go to http://dumps.wikimedia.org/ruwiki/
+   To download Wikipedia for any other language, you just need to change the language code. E.g. to download Russian version, go to http://dumps.wikimedia.org/ruwiki/
 
 2. Download Dictan Converter from http://www.softex.info/downloads, and convert the file obtained at #1 to KEYS
 format. To do it:
