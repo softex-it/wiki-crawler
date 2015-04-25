@@ -115,12 +115,14 @@ public class WikiProcessor {
 			
 			lastSegment = UrlUtils.getLastSegment(lastSegment);
 			if (lastSegment != null) {
-				lastSegment += "/";
+				lastSegment = "/" + lastSegment + "/";
 			} else {
 				lastSegment = "";
 			}
 			
-			httpLastSegment = lastSegment;
+			this.httpLastSegment = lastSegment;
+			
+			log.info("Extracted last segment to be used for links: {}", lastSegment);
 			
 		}
 		
@@ -225,7 +227,7 @@ public class WikiProcessor {
 				if (!href.isEmpty()) {
 					href = UrlUtils.decodeURL(href);
 					if (href.contains(":")) { // Fix special links to refer to http
-						href = httpUrl + "/" + href; // httpUrl always excludes / at the end
+						newHref = httpUrl + "/" + href; // httpUrl always excludes / at the end
 						linksExternal++;
 					} else {
 						href = ConversionUtils.replaceUnderscoresWithSpaces(href);

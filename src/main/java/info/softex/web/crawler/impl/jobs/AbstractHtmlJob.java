@@ -21,6 +21,7 @@ import org.jsoup.select.Elements;
  * @since version 1.0,		03/22/2014
  * 
  * @modified version 2.0,	01/21/2015
+ * @modified version 2.2,	04/23/2015
  * 
  * @author Dmitry Viktorov
  *
@@ -122,6 +123,10 @@ public abstract class AbstractHtmlJob extends AbstractJob {
 					link.attr("href", alteredLink);
 					linksLinked++;
 				} else {
+					if (!linksMissing.contains(href)) {
+						linksMissing.add(href);
+						logPool.logDebug(href + "\t: Not found or rejected");
+					}
 					JsoupUtils.removeContainerTag(link);
 					linksRemoved++;
 				}
