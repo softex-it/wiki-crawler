@@ -11,10 +11,10 @@
 /bin
 /obf
 /libs
-/build
 /out
 /proguard
 /target
+build
 **/target
 
 # OS generated files #

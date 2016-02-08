@@ -129,7 +129,7 @@ public class BasicWriterPool implements WriterPool {
 		if (inPath == null || inPath.isEmpty()) {
 			throw new IllegalArgumentException("File path can't be blank");
 		}
-		return FileUtils.createWriter(new File(inPath));
+		return FileUtils.openBufferedWriter(new File(inPath), UTF8);
 	}
 
 	protected static String createDirectory(String inPath) {

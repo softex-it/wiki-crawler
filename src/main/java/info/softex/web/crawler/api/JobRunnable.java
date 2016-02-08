@@ -11,7 +11,7 @@ package info.softex.web.crawler.api;
  */
 public interface JobRunnable {
 	
-	public static final String UTF8 = "UTF-8";
+	public final static String UTF8 = "UTF-8";
 	
 	public JobRunnable injectData(DataInjector dataInjector) throws Exception;
 	

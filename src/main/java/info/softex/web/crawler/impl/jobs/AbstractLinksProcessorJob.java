@@ -28,12 +28,13 @@ public abstract class AbstractLinksProcessorJob extends AbstractJob {
 		super(BasicLogPool.create(), BasicWriterPool.create().outputFile1(filePath));
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public boolean processItem(JobData jobData) throws Exception {
 		
 		Set<String> resultLinks = new LinkedHashSet<>();
 		
-		Set<String> unprocessedLinks = jobData.getContentSet();
+		Set<String> unprocessedLinks = (Set<String>)jobData.getDataObject();
 		for (String link : unprocessedLinks) {
 			String trackedLink = getTrackedLink(link);
 			if (!trackedLinks.contains(trackedLink)) {

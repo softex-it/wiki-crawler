@@ -70,10 +70,6 @@ public class WordsLowerCaseToWordsMapInjector implements DataInjector {
 			words.put(line.toLowerCase(), line);
 			
 			return true;
-			
 		}
-
 	}
-	
-	
 }

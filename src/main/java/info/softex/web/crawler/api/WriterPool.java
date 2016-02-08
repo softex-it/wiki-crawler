@@ -14,6 +14,8 @@ import java.io.IOException;
  */
 public interface WriterPool {
 	
+	public final static String UTF8 = "UTF-8";
+	
 	public void writeOutput1(String message) throws IOException;
 	public void writeOutput2(String message) throws IOException;
 	public void writeOutput3(String message) throws IOException;

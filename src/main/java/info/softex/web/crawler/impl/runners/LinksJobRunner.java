@@ -50,6 +50,7 @@ public class LinksJobRunner implements JobRunner {
 		log.info("Processing complete. Time: {} sec. Total Links Followed: {}", time, totalLinksFollowed);
 	}
 	
+	@SuppressWarnings("unchecked")
 	private void downloadAll(JobRunnable job, String initialUrl, int curRecLevel) throws Exception {
 		
 		if (initialUrl == null) {
@@ -70,11 +71,11 @@ public class LinksJobRunner implements JobRunner {
 		Set<String> links = DownloadUtils.getLinks(os.toStringUTF8());
 	
 		// Process the links
-		jobData.setContentSet(links);
+		jobData.setDataObject(links);
 		job.processItem(jobData);
 		
 		// Get back the processed links to follow
-		links = jobData.getContentSet();
+		links = (Set<String>)jobData.getDataObject();
 		
 		// Go to the next level of recursion if it's possible
 		if (curRecLevel < recursionDepth) {

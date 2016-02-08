@@ -30,7 +30,7 @@ public class BasicLogPool implements LogPool {
 	}
 	
 	public BasicLogPool(File logSuccessFile, File logErrorFile, File logDebugFile) throws IOException {
-		this.logSuccessWriter = FileUtils.createWriter(logSuccessFile);
+		this.logSuccessWriter = FileUtils.openBufferedWriter(logSuccessFile, UTF8);
 		errorFile(logErrorFile);
 		debugFile(logDebugFile);
 	}
@@ -51,7 +51,7 @@ public class BasicLogPool implements LogPool {
 	
 	@Override
 	public LogPool successFile(File inFile) throws IOException {
-		logSuccessWriter = FileUtils.createWriter(inFile);
+		logSuccessWriter = FileUtils.openBufferedWriter(inFile, UTF8);
 		return this;
 	}
 	
@@ -63,13 +63,13 @@ public class BasicLogPool implements LogPool {
 
 	@Override
 	public LogPool errorFile(File inFile) throws IOException {
-		logErrorWriter = FileUtils.createWriter(inFile);
+		logErrorWriter = FileUtils.openBufferedWriter(inFile, UTF8);
 		return this;
 	}
 	
 	@Override
 	public LogPool debugFile(File inFile) throws IOException {
-		logDebugWriter = FileUtils.createWriter(inFile);
+		logDebugWriter = FileUtils.openBufferedWriter(inFile, UTF8);
 		return this;
 	}
 	
@@ -81,7 +81,7 @@ public class BasicLogPool implements LogPool {
 	
 	@Override
 	public LogPool imageDebugFile(File inFile) throws IOException {
-		logImageDebugWriter = FileUtils.createWriter(inFile);
+		logImageDebugWriter = FileUtils.openBufferedWriter(inFile, UTF8);
 		return this;
 	}
 	
@@ -112,12 +112,12 @@ public class BasicLogPool implements LogPool {
 	public static BasicLogPool create() throws IOException {
 		return new BasicLogPool();
 	}
-
 	
-	private static BufferedWriter createWriter(String inPath) throws IOException {
+	protected static BufferedWriter createWriter(String inPath) throws IOException {
 		if (inPath == null || inPath.isEmpty()) {
 			throw new IllegalArgumentException("File path can't be blank");
 		}
-		return FileUtils.createWriter(new File(inPath));
+		return FileUtils.openBufferedWriter(new File(inPath), UTF8);
 	}
+	
 }

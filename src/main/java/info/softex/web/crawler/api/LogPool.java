@@ -14,6 +14,8 @@ import java.io.IOException;
  */
 public interface LogPool {
 	
+	public final static String UTF8 = "UTF-8";
+	
 	public void logSuccess(String message) throws IOException;
 	public void logError(String message) throws IOException;
 	public void logDebug(String message) throws IOException;

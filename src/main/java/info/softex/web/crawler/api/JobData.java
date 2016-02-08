@@ -1,15 +1,13 @@
 package info.softex.web.crawler.api;
 
-import java.util.Set;
-
 /**
- * 
  * @since version 1.0,		03/18/2014
  * 
  * @modified version 2.2,	04/16/2015
+ * @modified version 2.3,	04/30/2015
  * 
  * @author Dmitry Viktorov
- *
+ * 
  */
 public interface JobData {
 	
@@ -17,6 +15,6 @@ public interface JobData {
 	
 	public String getContent();
 	
-	public Set<String> getContentSet();
+	public Object getDataObject();
 	
 }

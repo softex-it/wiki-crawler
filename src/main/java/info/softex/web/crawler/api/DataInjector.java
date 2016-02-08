@@ -4,7 +4,9 @@ import java.util.Map;
 
 /**
  * 
- * @since version 2.1,	01/25/2014
+ * @since version 2.1,		01/25/2015
+ * 
+ * @modified version 2.3,	04/30/2015
  * 
  * @author Dmitry Viktorov
  *
@@ -17,7 +19,11 @@ public interface DataInjector {
 		FILES_LC_TO_FILES_MAP,
 		WORDS_LC_TO_WORDS_MAP,
 		
-		MATCHING_SET
+		MATCHING_SET,
+		
+		// Universal field for any objects
+		DATA_OBJECT_1,
+		DATA_OBJECT_2
 	}
 	
 }

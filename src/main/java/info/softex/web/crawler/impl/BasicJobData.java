@@ -1,14 +1,15 @@
 package info.softex.web.crawler.impl;
 
-import java.util.Set;
-
 import info.softex.web.crawler.api.JobData;
+
+import java.util.Set;
 
 /**
  * 
  * @since version 1.0,	03/18/2014
  * 
  * @modified version 2.2,	04/16/2015
+ * @modified version 2.3,	04/30/2015
  * 
  * @author Dmitry Viktorov
  *
@@ -18,7 +19,7 @@ public class BasicJobData implements JobData {
 	private String content = null;
 	private String title = null;	
 	
-	private Set<String> contentSet = null;	
+	private Object dataObject = null;
 	
 	@Override
 	public String getTitle() {
@@ -29,11 +30,6 @@ public class BasicJobData implements JobData {
 	public String getContent() {
 		return content;
 	}
-	
-	@Override
-	public Set<String> getContentSet() {
-		return contentSet;
-	}
 
 	public void setContent(String content) {
 		this.content = content;
@@ -42,9 +38,14 @@ public class BasicJobData implements JobData {
 	public void setTitle(String inTitle) {
 		this.title = inTitle;
 	}
+
+	@Override
+	public Object getDataObject() {
+		return dataObject;
+	}
 	
-	public void setContentSet(Set<String> inContentSet) {
-		this.contentSet = inContentSet;
+	public void setDataObject(Object inDataObject) {
+		this.dataObject = inDataObject;
 	}
 
 }

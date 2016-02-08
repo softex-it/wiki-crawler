@@ -24,7 +24,7 @@ import java.util.Map;
  */
 public class FileUtils {
 	
-	public static final String UTF8 = "UTF-8";
+	public final static String UTF8 = "UTF-8";
 	
 	public final static String EXT_HTML = ".html";
 	public final static String EXT_HTM = ".htm";
@@ -60,15 +60,46 @@ public class FileUtils {
 	
 	public static File string2File(String filePath, String content) throws IOException {
 		File outFile = new File(filePath);
-		Writer writer = createWriter(outFile);
+		Writer writer = openBufferedWriter(outFile, UTF8);
 		writer.write(content);
 		writer.flush();
 		writer.close();
 		return outFile;
 	}
 	
-	public static BufferedWriter createWriter(File file) throws IOException {
-		return new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), UTF8));
+	/**
+	 * Opens a {@link FileOutputStream} for the specified file, checking and
+	 * creating the parent directory if it does not exist.
+	 */
+	public static FileOutputStream openOutputStream(final File file, final boolean append) throws IOException {
+		if (file.exists()) {
+			if (file.isDirectory()) {
+				throw new IOException("File '" + file + "' exists but is a directory");
+			}
+			if (file.canWrite() == false) {
+				throw new IOException("File '" + file + "' cannot be written to");
+			}
+		} else {
+			final File parent = file.getParentFile();
+			if (parent != null) {
+				if (!parent.mkdirs() && !parent.isDirectory()) {
+					throw new IOException("Directory '" + parent + "' could not be created");
+				}
+			}
+		}
+		return new FileOutputStream(file, append);
+	}
+	
+	/**
+	 * Opens a {@link FileOutputStream} for the specified file, checking and
+	 * creating the parent directory if it does not exist.
+	 */
+	public static FileOutputStream openOutputStream(final File file) throws IOException {
+		return openOutputStream(file, false);
+	}
+	
+	public static BufferedWriter openBufferedWriter(File file, String encoding) throws IOException {
+		return new BufferedWriter(new OutputStreamWriter(openOutputStream(file, false), encoding));
 	}
 	
 	public static void closeWriter(BufferedWriter writer) throws IOException {
